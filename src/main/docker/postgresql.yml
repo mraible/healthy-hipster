@@ -1,0 +1,11 @@
+version: '2'
+services:
+  healthyhipster-postgresql:
+    image: postgres:12.1
+    # volumes:
+    #     - ~/volumes/jhipster/healthyHipster/postgresql/:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=healthyHipster
+      - POSTGRES_PASSWORD=
+    ports:
+      - 5432:5432
