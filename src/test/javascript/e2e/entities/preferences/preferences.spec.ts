@@ -2,7 +2,7 @@ import { browser, element, by } from 'protractor';
 
 import NavBarPage from './../../page-objects/navbar-page';
 import SignInPage from './../../page-objects/signin-page';
-import PreferencesComponentsPage, { PreferencesDeleteDialog } from './preferences.page-object';
+import PreferencesComponentsPage from './preferences.page-object';
 import PreferencesUpdatePage from './preferences-update.page-object';
 import {
   waitUntilDisplayed,
@@ -11,7 +11,7 @@ import {
   getRecordsCount,
   waitUntilHidden,
   waitUntilCount,
-  isVisible
+  isVisible,
 } from '../../util/utils';
 
 const expect = chai.expect;
@@ -21,8 +21,6 @@ describe('Preferences e2e test', () => {
   let signInPage: SignInPage;
   let preferencesComponentsPage: PreferencesComponentsPage;
   let preferencesUpdatePage: PreferencesUpdatePage;
-  let preferencesDeleteDialog: PreferencesDeleteDialog;
-  let beforeRecordsCount = 0;
 
   before(async () => {
     await browser.get('/');
@@ -34,62 +32,37 @@ describe('Preferences e2e test', () => {
     await waitUntilDisplayed(navBarPage.accountMenu);
   });
 
-  it('should load Preferences', async () => {
-    await navBarPage.getEntityPage('preferences');
+  beforeEach(async () => {
+    await browser.get('/');
+    await waitUntilDisplayed(navBarPage.entityMenu);
     preferencesComponentsPage = new PreferencesComponentsPage();
+    preferencesComponentsPage = await preferencesComponentsPage.goToPage(navBarPage);
+  });
+
+  it('should load Preferences', async () => {
     expect(await preferencesComponentsPage.title.getText()).to.match(/Preferences/);
-
     expect(await preferencesComponentsPage.createButton.isEnabled()).to.be.true;
-    await waitUntilAnyDisplayed([preferencesComponentsPage.noRecords, preferencesComponentsPage.table]);
+  });
 
-    beforeRecordsCount = (await isVisible(preferencesComponentsPage.noRecords))
+  it('should create and delete Preferences', async () => {
+    const beforeRecordsCount = (await isVisible(preferencesComponentsPage.noRecords))
       ? 0
       : await getRecordsCount(preferencesComponentsPage.table);
-  });
-
-  it('should load create Preferences page', async () => {
-    await preferencesComponentsPage.createButton.click();
-    preferencesUpdatePage = new PreferencesUpdatePage();
-    expect(await preferencesUpdatePage.getPageTitle().getAttribute('id')).to.match(/healthyHipsterApp.preferences.home.createOrEditLabel/);
-    await preferencesUpdatePage.cancel();
-  });
-
-  it('should create and save Preferences', async () => {
-    await preferencesComponentsPage.createButton.click();
-    await preferencesUpdatePage.setWeeklyGoalInput('15');
-    expect(await preferencesUpdatePage.getWeeklyGoalInput()).to.eq('15');
-    await preferencesUpdatePage.weightUnitsSelectLastOption();
-    await preferencesUpdatePage.userSelectLastOption();
-    await waitUntilDisplayed(preferencesUpdatePage.saveButton);
-    await preferencesUpdatePage.save();
-    await waitUntilHidden(preferencesUpdatePage.saveButton);
-    expect(await isVisible(preferencesUpdatePage.saveButton)).to.be.false;
+    preferencesUpdatePage = await preferencesComponentsPage.goToCreatePreferences();
+    await preferencesUpdatePage.enterData();
 
     expect(await preferencesComponentsPage.createButton.isEnabled()).to.be.true;
-
     await waitUntilDisplayed(preferencesComponentsPage.table);
-
     await waitUntilCount(preferencesComponentsPage.records, beforeRecordsCount + 1);
     expect(await preferencesComponentsPage.records.count()).to.eq(beforeRecordsCount + 1);
-  });
 
-  it('should delete last Preferences', async () => {
-    const deleteButton = preferencesComponentsPage.getDeleteButton(preferencesComponentsPage.records.last());
-    await click(deleteButton);
-
-    preferencesDeleteDialog = new PreferencesDeleteDialog();
-    await waitUntilDisplayed(preferencesDeleteDialog.deleteModal);
-    expect(await preferencesDeleteDialog.getDialogTitle().getAttribute('id')).to.match(/healthyHipsterApp.preferences.delete.question/);
-    await preferencesDeleteDialog.clickOnConfirmButton();
-
-    await waitUntilHidden(preferencesDeleteDialog.deleteModal);
-
-    expect(await isVisible(preferencesDeleteDialog.deleteModal)).to.be.false;
-
-    await waitUntilAnyDisplayed([preferencesComponentsPage.noRecords, preferencesComponentsPage.table]);
-
-    const afterCount = (await isVisible(preferencesComponentsPage.noRecords)) ? 0 : await getRecordsCount(preferencesComponentsPage.table);
-    expect(afterCount).to.eq(beforeRecordsCount);
+    await preferencesComponentsPage.deletePreferences();
+    if (beforeRecordsCount !== 0) {
+      await waitUntilCount(preferencesComponentsPage.records, beforeRecordsCount);
+      expect(await preferencesComponentsPage.records.count()).to.eq(beforeRecordsCount);
+    } else {
+      await waitUntilDisplayed(preferencesComponentsPage.noRecords);
+    }
   });
 
   after(async () => {

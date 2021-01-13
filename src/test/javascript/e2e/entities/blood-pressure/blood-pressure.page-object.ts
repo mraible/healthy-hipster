@@ -1,5 +1,26 @@
 import { element, by, ElementFinder, ElementArrayFinder } from 'protractor';
 
+import { waitUntilAnyDisplayed, waitUntilDisplayed, click, waitUntilHidden, isVisible } from '../../util/utils';
+
+import NavBarPage from './../../page-objects/navbar-page';
+
+import BloodPressureUpdatePage from './blood-pressure-update.page-object';
+
+const expect = chai.expect;
+export class BloodPressureDeleteDialog {
+  deleteModal = element(by.className('modal'));
+  private dialogTitle: ElementFinder = element(by.id('healthPointsApp.bloodPressure.delete.question'));
+  private confirmButton = element(by.id('jhi-confirm-delete-bloodPressure'));
+
+  getDialogTitle() {
+    return this.dialogTitle;
+  }
+
+  async clickOnConfirmButton() {
+    await this.confirmButton.click();
+  }
+}
+
 export default class BloodPressureComponentsPage {
   createButton: ElementFinder = element(by.id('jh-create-entity'));
   deleteButtons = element.all(by.css('div table .btn-danger'));
@@ -20,18 +41,29 @@ export default class BloodPressureComponentsPage {
   getDeleteButton(record: ElementFinder) {
     return record.element(by.css('a.btn.btn-danger.btn-sm'));
   }
-}
 
-export class BloodPressureDeleteDialog {
-  deleteModal = element(by.className('modal'));
-  private dialogTitle: ElementFinder = element(by.id('healthyHipsterApp.bloodPressure.delete.question'));
-  private confirmButton = element(by.id('jhi-confirm-delete-bloodPressure'));
-
-  getDialogTitle() {
-    return this.dialogTitle;
+  async goToPage(navBarPage: NavBarPage) {
+    await navBarPage.getEntityPage('blood-pressure');
+    await waitUntilAnyDisplayed([this.noRecords, this.table]);
+    return this;
   }
 
-  async clickOnConfirmButton() {
-    await this.confirmButton.click();
+  async goToCreateBloodPressure() {
+    await this.createButton.click();
+    return new BloodPressureUpdatePage();
+  }
+
+  async deleteBloodPressure() {
+    const deleteButton = this.getDeleteButton(this.records.last());
+    await click(deleteButton);
+
+    const bloodPressureDeleteDialog = new BloodPressureDeleteDialog();
+    await waitUntilDisplayed(bloodPressureDeleteDialog.deleteModal);
+    expect(await bloodPressureDeleteDialog.getDialogTitle().getAttribute('id')).to.match(/healthPointsApp.bloodPressure.delete.question/);
+    await bloodPressureDeleteDialog.clickOnConfirmButton();
+
+    await waitUntilHidden(bloodPressureDeleteDialog.deleteModal);
+
+    expect(await isVisible(bloodPressureDeleteDialog.deleteModal)).to.be.false;
   }
 }

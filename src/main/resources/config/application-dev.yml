@@ -16,14 +16,20 @@
 logging:
   level:
     ROOT: DEBUG
-    io.github.jhipster: DEBUG
-    com.healthy.hipster: DEBUG
+    tech.jhipster: DEBUG
+    org.hibernate.SQL: DEBUG
+    com.okta.developer: DEBUG
+
+management:
+  health:
+    elasticsearch:
+      enabled: false
 
 spring:
   profiles:
     active: dev
     include:
-      - swagger
+      - api-docs
       # Uncomment to activate TLS for the dev profile
       #- tls
   devtools:
@@ -37,8 +43,8 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:h2:file:./build/h2db/db/healthyhipster;DB_CLOSE_DELAY=-1
-    username: healthyHipster
+    url: jdbc:h2:file:./build/h2db/db/healthpoints;DB_CLOSE_DELAY=-1
+    username: HealthPoints
     password:
     hikari:
       poolName: Hikari
@@ -47,13 +53,11 @@ spring:
     console:
       enabled: false
   jpa:
-    show-sql: true
-    properties:
-      hibernate.id.new_generator_mappings: true
-      hibernate.connection.provider_disables_autocommit: true
-      hibernate.cache.use_second_level_cache: true
-      hibernate.cache.use_query_cache: false
-      hibernate.generate_statistics: false
+    database-platform: tech.jhipster.domain.util.FixedH2Dialect
+  data:
+  elasticsearch:
+    rest:
+      uris: http://localhost:9200
   liquibase:
     # Remove 'faker' if you do not want the sample data to be loaded automatically
     contexts: dev, faker
@@ -91,10 +95,6 @@ jhipster:
     max-age: 1800
   mail: # specific JHipster mail property, for standard properties see MailProperties
     base-url: http://127.0.0.1:8080
-  metrics:
-    logs: # Reports metrics in the logs
-      enabled: false
-      report-frequency: 60 # in seconds
   logging:
     use-json-format: false # By default, logs are not in Json format
     logstash: # Forward logs to logstash over a socket, used by LoggingConfiguration
@@ -102,9 +102,6 @@ jhipster:
       host: localhost
       port: 5000
       queue-size: 512
-  audit-events:
-    retention-period: 30 # Number of days before audit events are deleted.
-
 # ===================================================================
 # Application specific properties
 # Add your own application properties here, see the ApplicationProperties class

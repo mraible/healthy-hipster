@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { Button, Row, Col, Label } from 'reactstrap';
 import { AvFeedback, AvForm, AvGroup, AvInput, AvField } from 'availity-reactstrap-validation';
-import { Translate, translate, ICrudGetAction, ICrudGetAllAction, ICrudPutAction } from 'react-jhipster';
+import { Translate, translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IRootState } from 'app/shared/reducers';
 
@@ -18,7 +18,7 @@ export interface IWeightUpdateProps extends StateProps, DispatchProps, RouteComp
 
 export const WeightUpdate = (props: IWeightUpdateProps) => {
   const [userId, setUserId] = useState('0');
-  const [isNew, setIsNew] = useState(!props.match.params || !props.match.params.id);
+  const [isNew] = useState(!props.match.params || !props.match.params.id);
 
   const { weightEntity, users, loading, updating } = props;
 
@@ -46,7 +46,7 @@ export const WeightUpdate = (props: IWeightUpdateProps) => {
     if (errors.length === 0) {
       const entity = {
         ...weightEntity,
-        ...values
+        ...values,
       };
 
       if (isNew) {
@@ -61,8 +61,8 @@ export const WeightUpdate = (props: IWeightUpdateProps) => {
     <div>
       <Row className="justify-content-center">
         <Col md="8">
-          <h2 id="healthyHipsterApp.weight.home.createOrEditLabel">
-            <Translate contentKey="healthyHipsterApp.weight.home.createOrEditLabel">Create or edit a Weight</Translate>
+          <h2 id="healthPointsApp.weight.home.createOrEditLabel" data-cy="WeightCreateUpdateHeading">
+            <Translate contentKey="healthPointsApp.weight.home.createOrEditLabel">Create or edit a Weight</Translate>
           </h2>
         </Col>
       </Row>
@@ -82,40 +82,42 @@ export const WeightUpdate = (props: IWeightUpdateProps) => {
               ) : null}
               <AvGroup>
                 <Label id="timestampLabel" for="weight-timestamp">
-                  <Translate contentKey="healthyHipsterApp.weight.timestamp">Timestamp</Translate>
+                  <Translate contentKey="healthPointsApp.weight.timestamp">Timestamp</Translate>
                 </Label>
                 <AvInput
                   id="weight-timestamp"
+                  data-cy="timestamp"
                   type="datetime-local"
                   className="form-control"
                   name="timestamp"
                   placeholder={'YYYY-MM-DD HH:mm'}
                   value={isNew ? displayDefaultDateTime() : convertDateTimeFromServer(props.weightEntity.timestamp)}
                   validate={{
-                    required: { value: true, errorMessage: translate('entity.validation.required') }
+                    required: { value: true, errorMessage: translate('entity.validation.required') },
                   }}
                 />
               </AvGroup>
               <AvGroup>
                 <Label id="weightLabel" for="weight-weight">
-                  <Translate contentKey="healthyHipsterApp.weight.weight">Weight</Translate>
+                  <Translate contentKey="healthPointsApp.weight.weight">Weight</Translate>
                 </Label>
                 <AvField
                   id="weight-weight"
+                  data-cy="weight"
                   type="string"
                   className="form-control"
                   name="weight"
                   validate={{
                     required: { value: true, errorMessage: translate('entity.validation.required') },
-                    number: { value: true, errorMessage: translate('entity.validation.number') }
+                    number: { value: true, errorMessage: translate('entity.validation.number') },
                   }}
                 />
               </AvGroup>
               <AvGroup>
                 <Label for="weight-user">
-                  <Translate contentKey="healthyHipsterApp.weight.user">User</Translate>
+                  <Translate contentKey="healthPointsApp.weight.user">User</Translate>
                 </Label>
-                <AvInput id="weight-user" type="select" className="form-control" name="user.id">
+                <AvInput id="weight-user" data-cy="user" type="select" className="form-control" name="user.id">
                   <option value="" key="0" />
                   {users
                     ? users.map(otherEntity => (
@@ -134,7 +136,7 @@ export const WeightUpdate = (props: IWeightUpdateProps) => {
                 </span>
               </Button>
               &nbsp;
-              <Button color="primary" id="save-entity" type="submit" disabled={updating}>
+              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
@@ -152,7 +154,7 @@ const mapStateToProps = (storeState: IRootState) => ({
   weightEntity: storeState.weight.entity,
   loading: storeState.weight.loading,
   updating: storeState.weight.updating,
-  updateSuccess: storeState.weight.updateSuccess
+  updateSuccess: storeState.weight.updateSuccess,
 });
 
 const mapDispatchToProps = {
@@ -160,7 +162,7 @@ const mapDispatchToProps = {
   getEntity,
   updateEntity,
   createEntity,
-  reset
+  reset,
 };
 
 type StateProps = ReturnType<typeof mapStateToProps>;
