@@ -11,9 +11,10 @@ import reducer, {
   createEntity,
   deleteEntity,
   getEntities,
+  getSearchEntities,
   getEntity,
   updateEntity,
-  reset
+  reset,
 } from 'app/entities/blood-pressure/blood-pressure.reducer';
 import { REQUEST, SUCCESS, FAILURE } from 'app/shared/reducers/action-type.util';
 import { IBloodPressure, defaultValue } from 'app/shared/model/blood-pressure.model';
@@ -33,11 +34,11 @@ describe('Entities reducer tests', () => {
     entities: [] as ReadonlyArray<IBloodPressure>,
     entity: defaultValue,
     links: {
-      next: 0
+      next: 0,
     },
     totalItems: 0,
     updating: false,
-    updateSuccess: false
+    updateSuccess: false,
   };
 
   function testInitialState(state) {
@@ -45,7 +46,7 @@ describe('Entities reducer tests', () => {
       loading: false,
       errorMessage: null,
       updating: false,
-      updateSuccess: false
+      updateSuccess: false,
     });
     expect(isEmpty(state.entities));
     expect(isEmpty(state.entity));
@@ -65,13 +66,21 @@ describe('Entities reducer tests', () => {
 
   describe('Requests', () => {
     it('should set state to loading', () => {
-      testMultipleTypes([REQUEST(ACTION_TYPES.FETCH_BLOODPRESSURE_LIST), REQUEST(ACTION_TYPES.FETCH_BLOODPRESSURE)], {}, state => {
-        expect(state).toMatchObject({
-          errorMessage: null,
-          updateSuccess: false,
-          loading: true
-        });
-      });
+      testMultipleTypes(
+        [
+          REQUEST(ACTION_TYPES.FETCH_BLOODPRESSURE_LIST),
+          REQUEST(ACTION_TYPES.SEARCH_BLOODPRESSURES),
+          REQUEST(ACTION_TYPES.FETCH_BLOODPRESSURE),
+        ],
+        {},
+        state => {
+          expect(state).toMatchObject({
+            errorMessage: null,
+            updateSuccess: false,
+            loading: true,
+          });
+        }
+      );
     });
 
     it('should set state to updating', () => {
@@ -79,14 +88,14 @@ describe('Entities reducer tests', () => {
         [
           REQUEST(ACTION_TYPES.CREATE_BLOODPRESSURE),
           REQUEST(ACTION_TYPES.UPDATE_BLOODPRESSURE),
-          REQUEST(ACTION_TYPES.DELETE_BLOODPRESSURE)
+          REQUEST(ACTION_TYPES.DELETE_BLOODPRESSURE),
         ],
         {},
         state => {
           expect(state).toMatchObject({
             errorMessage: null,
             updateSuccess: false,
-            updating: true
+            updating: true,
           });
         }
       );
@@ -97,11 +106,11 @@ describe('Entities reducer tests', () => {
         reducer(
           { ...initialState, loading: true },
           {
-            type: ACTION_TYPES.RESET
+            type: ACTION_TYPES.RESET,
           }
         )
       ).toEqual({
-        ...initialState
+        ...initialState,
       });
     });
   });
@@ -111,17 +120,18 @@ describe('Entities reducer tests', () => {
       testMultipleTypes(
         [
           FAILURE(ACTION_TYPES.FETCH_BLOODPRESSURE_LIST),
+          FAILURE(ACTION_TYPES.SEARCH_BLOODPRESSURES),
           FAILURE(ACTION_TYPES.FETCH_BLOODPRESSURE),
           FAILURE(ACTION_TYPES.CREATE_BLOODPRESSURE),
           FAILURE(ACTION_TYPES.UPDATE_BLOODPRESSURE),
-          FAILURE(ACTION_TYPES.DELETE_BLOODPRESSURE)
+          FAILURE(ACTION_TYPES.DELETE_BLOODPRESSURE),
         ],
         'error message',
         state => {
           expect(state).toMatchObject({
             errorMessage: 'error message',
             updateSuccess: false,
-            updating: false
+            updating: false,
           });
         }
       );
@@ -135,14 +145,30 @@ describe('Entities reducer tests', () => {
       expect(
         reducer(undefined, {
           type: SUCCESS(ACTION_TYPES.FETCH_BLOODPRESSURE_LIST),
-          payload
+          payload,
         })
       ).toEqual({
         ...initialState,
         links,
         loading: false,
         totalItems: payload.headers['x-total-count'],
-        entities: payload.data
+        entities: payload.data,
+      });
+    });
+    it('should search all entities', () => {
+      const payload = { data: [{ 1: 'fake1' }, { 2: 'fake2' }], headers: { 'x-total-count': 123, link: ';' } };
+      const links = parseHeaderForLinks(payload.headers.link);
+      expect(
+        reducer(undefined, {
+          type: SUCCESS(ACTION_TYPES.SEARCH_BLOODPRESSURES),
+          payload,
+        })
+      ).toEqual({
+        ...initialState,
+        links,
+        loading: false,
+        totalItems: payload.headers['x-total-count'],
+        entities: payload.data,
       });
     });
 
@@ -151,12 +177,12 @@ describe('Entities reducer tests', () => {
       expect(
         reducer(undefined, {
           type: SUCCESS(ACTION_TYPES.FETCH_BLOODPRESSURE),
-          payload
+          payload,
         })
       ).toEqual({
         ...initialState,
         loading: false,
-        entity: payload.data
+        entity: payload.data,
       });
     });
 
@@ -165,13 +191,13 @@ describe('Entities reducer tests', () => {
       expect(
         reducer(undefined, {
           type: SUCCESS(ACTION_TYPES.CREATE_BLOODPRESSURE),
-          payload
+          payload,
         })
       ).toEqual({
         ...initialState,
         updating: false,
         updateSuccess: true,
-        entity: payload.data
+        entity: payload.data,
       });
     });
 
@@ -179,11 +205,11 @@ describe('Entities reducer tests', () => {
       const payload = 'fake payload';
       const toTest = reducer(undefined, {
         type: SUCCESS(ACTION_TYPES.DELETE_BLOODPRESSURE),
-        payload
+        payload,
       });
       expect(toTest).toMatchObject({
         updating: false,
-        updateSuccess: true
+        updateSuccess: true,
       });
     });
   });
@@ -204,25 +230,37 @@ describe('Entities reducer tests', () => {
     it('dispatches ACTION_TYPES.FETCH_BLOODPRESSURE_LIST actions', async () => {
       const expectedActions = [
         {
-          type: REQUEST(ACTION_TYPES.FETCH_BLOODPRESSURE_LIST)
+          type: REQUEST(ACTION_TYPES.FETCH_BLOODPRESSURE_LIST),
         },
         {
           type: SUCCESS(ACTION_TYPES.FETCH_BLOODPRESSURE_LIST),
-          payload: resolvedObject
-        }
+          payload: resolvedObject,
+        },
       ];
       await store.dispatch(getEntities()).then(() => expect(store.getActions()).toEqual(expectedActions));
+    });
+    it('dispatches ACTION_TYPES.SEARCH_BLOODPRESSURES actions', async () => {
+      const expectedActions = [
+        {
+          type: REQUEST(ACTION_TYPES.SEARCH_BLOODPRESSURES),
+        },
+        {
+          type: SUCCESS(ACTION_TYPES.SEARCH_BLOODPRESSURES),
+          payload: resolvedObject,
+        },
+      ];
+      await store.dispatch(getSearchEntities()).then(() => expect(store.getActions()).toEqual(expectedActions));
     });
 
     it('dispatches ACTION_TYPES.FETCH_BLOODPRESSURE actions', async () => {
       const expectedActions = [
         {
-          type: REQUEST(ACTION_TYPES.FETCH_BLOODPRESSURE)
+          type: REQUEST(ACTION_TYPES.FETCH_BLOODPRESSURE),
         },
         {
           type: SUCCESS(ACTION_TYPES.FETCH_BLOODPRESSURE),
-          payload: resolvedObject
-        }
+          payload: resolvedObject,
+        },
       ];
       await store.dispatch(getEntity(42666)).then(() => expect(store.getActions()).toEqual(expectedActions));
     });
@@ -230,12 +268,12 @@ describe('Entities reducer tests', () => {
     it('dispatches ACTION_TYPES.CREATE_BLOODPRESSURE actions', async () => {
       const expectedActions = [
         {
-          type: REQUEST(ACTION_TYPES.CREATE_BLOODPRESSURE)
+          type: REQUEST(ACTION_TYPES.CREATE_BLOODPRESSURE),
         },
         {
           type: SUCCESS(ACTION_TYPES.CREATE_BLOODPRESSURE),
-          payload: resolvedObject
-        }
+          payload: resolvedObject,
+        },
       ];
       await store.dispatch(createEntity({ id: 1 })).then(() => expect(store.getActions()).toEqual(expectedActions));
     });
@@ -243,12 +281,12 @@ describe('Entities reducer tests', () => {
     it('dispatches ACTION_TYPES.UPDATE_BLOODPRESSURE actions', async () => {
       const expectedActions = [
         {
-          type: REQUEST(ACTION_TYPES.UPDATE_BLOODPRESSURE)
+          type: REQUEST(ACTION_TYPES.UPDATE_BLOODPRESSURE),
         },
         {
           type: SUCCESS(ACTION_TYPES.UPDATE_BLOODPRESSURE),
-          payload: resolvedObject
-        }
+          payload: resolvedObject,
+        },
       ];
       await store.dispatch(updateEntity({ id: 1 })).then(() => expect(store.getActions()).toEqual(expectedActions));
     });
@@ -256,12 +294,12 @@ describe('Entities reducer tests', () => {
     it('dispatches ACTION_TYPES.DELETE_BLOODPRESSURE actions', async () => {
       const expectedActions = [
         {
-          type: REQUEST(ACTION_TYPES.DELETE_BLOODPRESSURE)
+          type: REQUEST(ACTION_TYPES.DELETE_BLOODPRESSURE),
         },
         {
           type: SUCCESS(ACTION_TYPES.DELETE_BLOODPRESSURE),
-          payload: resolvedObject
-        }
+          payload: resolvedObject,
+        },
       ];
       await store.dispatch(deleteEntity(42666)).then(() => expect(store.getActions()).toEqual(expectedActions));
     });
@@ -269,8 +307,8 @@ describe('Entities reducer tests', () => {
     it('dispatches ACTION_TYPES.RESET actions', async () => {
       const expectedActions = [
         {
-          type: ACTION_TYPES.RESET
-        }
+          type: ACTION_TYPES.RESET,
+        },
       ];
       await store.dispatch(reset());
       expect(store.getActions()).toEqual(expectedActions);

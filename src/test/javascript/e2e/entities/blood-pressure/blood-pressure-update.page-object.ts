@@ -1,7 +1,10 @@
-import { element, by, ElementFinder } from 'protractor';
+import { element, by, ElementFinder, protractor } from 'protractor';
+import { waitUntilDisplayed, waitUntilHidden, isVisible } from '../../util/utils';
+
+const expect = chai.expect;
 
 export default class BloodPressureUpdatePage {
-  pageTitle: ElementFinder = element(by.id('healthyHipsterApp.bloodPressure.home.createOrEditLabel'));
+  pageTitle: ElementFinder = element(by.id('healthPointsApp.bloodPressure.home.createOrEditLabel'));
   saveButton: ElementFinder = element(by.id('save-entity'));
   cancelButton: ElementFinder = element(by.id('cancel-save'));
   timestampInput: ElementFinder = element(by.css('input#blood-pressure-timestamp'));
@@ -38,10 +41,7 @@ export default class BloodPressureUpdatePage {
   }
 
   async userSelectLastOption() {
-    await this.userSelect
-      .all(by.tagName('option'))
-      .last()
-      .click();
+    await this.userSelect.all(by.tagName('option')).last().click();
   }
 
   async userSelectOption(option) {
@@ -66,5 +66,21 @@ export default class BloodPressureUpdatePage {
 
   getSaveButton() {
     return this.saveButton;
+  }
+
+  async enterData() {
+    await waitUntilDisplayed(this.saveButton);
+    await this.setTimestampInput('01/01/2001' + protractor.Key.TAB + '02:30AM');
+    expect(await this.getTimestampInput()).to.contain('2001-01-01T02:30');
+    await waitUntilDisplayed(this.saveButton);
+    await this.setSystolicInput('5');
+    expect(await this.getSystolicInput()).to.eq('5');
+    await waitUntilDisplayed(this.saveButton);
+    await this.setDiastolicInput('5');
+    expect(await this.getDiastolicInput()).to.eq('5');
+    await this.userSelectLastOption();
+    await this.save();
+    await waitUntilHidden(this.saveButton);
+    expect(await isVisible(this.saveButton)).to.be.false;
   }
 }

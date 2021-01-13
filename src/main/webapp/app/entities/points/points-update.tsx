@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { Button, Row, Col, Label } from 'reactstrap';
 import { AvFeedback, AvForm, AvGroup, AvInput, AvField } from 'availity-reactstrap-validation';
-import { Translate, translate, ICrudGetAction, ICrudGetAllAction, ICrudPutAction } from 'react-jhipster';
+import { Translate, translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IRootState } from 'app/shared/reducers';
 
@@ -18,7 +18,7 @@ export interface IPointsUpdateProps extends StateProps, DispatchProps, RouteComp
 
 export const PointsUpdate = (props: IPointsUpdateProps) => {
   const [userId, setUserId] = useState('0');
-  const [isNew, setIsNew] = useState(!props.match.params || !props.match.params.id);
+  const [isNew] = useState(!props.match.params || !props.match.params.id);
 
   const { pointsEntity, users, loading, updating } = props;
 
@@ -46,7 +46,7 @@ export const PointsUpdate = (props: IPointsUpdateProps) => {
     if (errors.length === 0) {
       const entity = {
         ...pointsEntity,
-        ...values
+        ...values,
       };
 
       if (isNew) {
@@ -61,8 +61,8 @@ export const PointsUpdate = (props: IPointsUpdateProps) => {
     <div>
       <Row className="justify-content-center">
         <Col md="8">
-          <h2 id="healthyHipsterApp.points.home.createOrEditLabel">
-            <Translate contentKey="healthyHipsterApp.points.home.createOrEditLabel">Create or edit a Points</Translate>
+          <h2 id="healthPointsApp.points.home.createOrEditLabel" data-cy="PointsCreateUpdateHeading">
+            <Translate contentKey="healthPointsApp.points.home.createOrEditLabel">Create or edit a Points</Translate>
           </h2>
         </Col>
       </Row>
@@ -82,54 +82,56 @@ export const PointsUpdate = (props: IPointsUpdateProps) => {
               ) : null}
               <AvGroup>
                 <Label id="dateLabel" for="points-date">
-                  <Translate contentKey="healthyHipsterApp.points.date">Date</Translate>
+                  <Translate contentKey="healthPointsApp.points.date">Date</Translate>
                 </Label>
                 <AvField
                   id="points-date"
+                  data-cy="date"
                   type="date"
                   className="form-control"
                   name="date"
                   validate={{
-                    required: { value: true, errorMessage: translate('entity.validation.required') }
+                    required: { value: true, errorMessage: translate('entity.validation.required') },
                   }}
                 />
               </AvGroup>
               <AvGroup>
                 <Label id="exerciseLabel" for="points-exercise">
-                  <Translate contentKey="healthyHipsterApp.points.exercise">Exercise</Translate>
+                  <Translate contentKey="healthPointsApp.points.exercise">Exercise</Translate>
                 </Label>
-                <AvField id="points-exercise" type="string" className="form-control" name="exercise" />
+                <AvField id="points-exercise" data-cy="exercise" type="string" className="form-control" name="exercise" />
               </AvGroup>
               <AvGroup>
                 <Label id="mealsLabel" for="points-meals">
-                  <Translate contentKey="healthyHipsterApp.points.meals">Meals</Translate>
+                  <Translate contentKey="healthPointsApp.points.meals">Meals</Translate>
                 </Label>
-                <AvField id="points-meals" type="string" className="form-control" name="meals" />
+                <AvField id="points-meals" data-cy="meals" type="string" className="form-control" name="meals" />
               </AvGroup>
               <AvGroup>
                 <Label id="alcoholLabel" for="points-alcohol">
-                  <Translate contentKey="healthyHipsterApp.points.alcohol">Alcohol</Translate>
+                  <Translate contentKey="healthPointsApp.points.alcohol">Alcohol</Translate>
                 </Label>
-                <AvField id="points-alcohol" type="string" className="form-control" name="alcohol" />
+                <AvField id="points-alcohol" data-cy="alcohol" type="string" className="form-control" name="alcohol" />
               </AvGroup>
               <AvGroup>
                 <Label id="notesLabel" for="points-notes">
-                  <Translate contentKey="healthyHipsterApp.points.notes">Notes</Translate>
+                  <Translate contentKey="healthPointsApp.points.notes">Notes</Translate>
                 </Label>
                 <AvField
                   id="points-notes"
+                  data-cy="notes"
                   type="text"
                   name="notes"
                   validate={{
-                    maxLength: { value: 140, errorMessage: translate('entity.validation.maxlength', { max: 140 }) }
+                    maxLength: { value: 140, errorMessage: translate('entity.validation.maxlength', { max: 140 }) },
                   }}
                 />
               </AvGroup>
               <AvGroup>
                 <Label for="points-user">
-                  <Translate contentKey="healthyHipsterApp.points.user">User</Translate>
+                  <Translate contentKey="healthPointsApp.points.user">User</Translate>
                 </Label>
-                <AvInput id="points-user" type="select" className="form-control" name="user.id">
+                <AvInput id="points-user" data-cy="user" type="select" className="form-control" name="user.id">
                   <option value="" key="0" />
                   {users
                     ? users.map(otherEntity => (
@@ -148,7 +150,7 @@ export const PointsUpdate = (props: IPointsUpdateProps) => {
                 </span>
               </Button>
               &nbsp;
-              <Button color="primary" id="save-entity" type="submit" disabled={updating}>
+              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
@@ -166,7 +168,7 @@ const mapStateToProps = (storeState: IRootState) => ({
   pointsEntity: storeState.points.entity,
   loading: storeState.points.loading,
   updating: storeState.points.updating,
-  updateSuccess: storeState.points.updateSuccess
+  updateSuccess: storeState.points.updateSuccess,
 });
 
 const mapDispatchToProps = {
@@ -174,7 +176,7 @@ const mapDispatchToProps = {
   getEntity,
   updateEntity,
   createEntity,
-  reset
+  reset,
 };
 
 type StateProps = ReturnType<typeof mapStateToProps>;

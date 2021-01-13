@@ -1,11 +1,12 @@
 import axios from 'axios';
 import {
+  ICrudSearchAction,
   parseHeaderForLinks,
   loadMoreDataWhenScrolled,
   ICrudGetAction,
   ICrudGetAllAction,
   ICrudPutAction,
-  ICrudDeleteAction
+  ICrudDeleteAction,
 } from 'react-jhipster';
 
 import { cleanEntity } from 'app/shared/util/entity-utils';
@@ -14,12 +15,13 @@ import { REQUEST, SUCCESS, FAILURE } from 'app/shared/reducers/action-type.util'
 import { IBloodPressure, defaultValue } from 'app/shared/model/blood-pressure.model';
 
 export const ACTION_TYPES = {
+  SEARCH_BLOODPRESSURES: 'bloodPressure/SEARCH_BLOODPRESSURES',
   FETCH_BLOODPRESSURE_LIST: 'bloodPressure/FETCH_BLOODPRESSURE_LIST',
   FETCH_BLOODPRESSURE: 'bloodPressure/FETCH_BLOODPRESSURE',
   CREATE_BLOODPRESSURE: 'bloodPressure/CREATE_BLOODPRESSURE',
   UPDATE_BLOODPRESSURE: 'bloodPressure/UPDATE_BLOODPRESSURE',
   DELETE_BLOODPRESSURE: 'bloodPressure/DELETE_BLOODPRESSURE',
-  RESET: 'bloodPressure/RESET'
+  RESET: 'bloodPressure/RESET',
 };
 
 const initialState = {
@@ -30,7 +32,7 @@ const initialState = {
   links: { next: 0 },
   updating: false,
   totalItems: 0,
-  updateSuccess: false
+  updateSuccess: false,
 };
 
 export type BloodPressureState = Readonly<typeof initialState>;
@@ -39,13 +41,14 @@ export type BloodPressureState = Readonly<typeof initialState>;
 
 export default (state: BloodPressureState = initialState, action): BloodPressureState => {
   switch (action.type) {
+    case REQUEST(ACTION_TYPES.SEARCH_BLOODPRESSURES):
     case REQUEST(ACTION_TYPES.FETCH_BLOODPRESSURE_LIST):
     case REQUEST(ACTION_TYPES.FETCH_BLOODPRESSURE):
       return {
         ...state,
         errorMessage: null,
         updateSuccess: false,
-        loading: true
+        loading: true,
       };
     case REQUEST(ACTION_TYPES.CREATE_BLOODPRESSURE):
     case REQUEST(ACTION_TYPES.UPDATE_BLOODPRESSURE):
@@ -54,8 +57,9 @@ export default (state: BloodPressureState = initialState, action): BloodPressure
         ...state,
         errorMessage: null,
         updateSuccess: false,
-        updating: true
+        updating: true,
       };
+    case FAILURE(ACTION_TYPES.SEARCH_BLOODPRESSURES):
     case FAILURE(ACTION_TYPES.FETCH_BLOODPRESSURE_LIST):
     case FAILURE(ACTION_TYPES.FETCH_BLOODPRESSURE):
     case FAILURE(ACTION_TYPES.CREATE_BLOODPRESSURE):
@@ -66,8 +70,9 @@ export default (state: BloodPressureState = initialState, action): BloodPressure
         loading: false,
         updating: false,
         updateSuccess: false,
-        errorMessage: action.payload
+        errorMessage: action.payload,
       };
+    case SUCCESS(ACTION_TYPES.SEARCH_BLOODPRESSURES):
     case SUCCESS(ACTION_TYPES.FETCH_BLOODPRESSURE_LIST): {
       const links = parseHeaderForLinks(action.payload.headers.link);
 
@@ -76,14 +81,14 @@ export default (state: BloodPressureState = initialState, action): BloodPressure
         loading: false,
         links,
         entities: loadMoreDataWhenScrolled(state.entities, action.payload.data, links),
-        totalItems: parseInt(action.payload.headers['x-total-count'], 10)
+        totalItems: parseInt(action.payload.headers['x-total-count'], 10),
       };
     }
     case SUCCESS(ACTION_TYPES.FETCH_BLOODPRESSURE):
       return {
         ...state,
         loading: false,
-        entity: action.payload.data
+        entity: action.payload.data,
       };
     case SUCCESS(ACTION_TYPES.CREATE_BLOODPRESSURE):
     case SUCCESS(ACTION_TYPES.UPDATE_BLOODPRESSURE):
@@ -91,18 +96,18 @@ export default (state: BloodPressureState = initialState, action): BloodPressure
         ...state,
         updating: false,
         updateSuccess: true,
-        entity: action.payload.data
+        entity: action.payload.data,
       };
     case SUCCESS(ACTION_TYPES.DELETE_BLOODPRESSURE):
       return {
         ...state,
         updating: false,
         updateSuccess: true,
-        entity: {}
+        entity: {},
       };
     case ACTION_TYPES.RESET:
       return {
-        ...initialState
+        ...initialState,
       };
     default:
       return state;
@@ -110,14 +115,20 @@ export default (state: BloodPressureState = initialState, action): BloodPressure
 };
 
 const apiUrl = 'api/blood-pressures';
+const apiSearchUrl = 'api/_search/blood-pressures';
 
 // Actions
+
+export const getSearchEntities: ICrudSearchAction<IBloodPressure> = (query, page, size, sort) => ({
+  type: ACTION_TYPES.SEARCH_BLOODPRESSURES,
+  payload: axios.get<IBloodPressure>(`${apiSearchUrl}?query=${query}${sort ? `&page=${page}&size=${size}&sort=${sort}` : ''}`),
+});
 
 export const getEntities: ICrudGetAllAction<IBloodPressure> = (page, size, sort) => {
   const requestUrl = `${apiUrl}${sort ? `?page=${page}&size=${size}&sort=${sort}` : ''}`;
   return {
     type: ACTION_TYPES.FETCH_BLOODPRESSURE_LIST,
-    payload: axios.get<IBloodPressure>(`${requestUrl}${sort ? '&' : '?'}cacheBuster=${new Date().getTime()}`)
+    payload: axios.get<IBloodPressure>(`${requestUrl}${sort ? '&' : '?'}cacheBuster=${new Date().getTime()}`),
   };
 };
 
@@ -125,14 +136,14 @@ export const getEntity: ICrudGetAction<IBloodPressure> = id => {
   const requestUrl = `${apiUrl}/${id}`;
   return {
     type: ACTION_TYPES.FETCH_BLOODPRESSURE,
-    payload: axios.get<IBloodPressure>(requestUrl)
+    payload: axios.get<IBloodPressure>(requestUrl),
   };
 };
 
 export const createEntity: ICrudPutAction<IBloodPressure> = entity => async dispatch => {
   const result = await dispatch({
     type: ACTION_TYPES.CREATE_BLOODPRESSURE,
-    payload: axios.post(apiUrl, cleanEntity(entity))
+    payload: axios.post(apiUrl, cleanEntity(entity)),
   });
   return result;
 };
@@ -140,7 +151,7 @@ export const createEntity: ICrudPutAction<IBloodPressure> = entity => async disp
 export const updateEntity: ICrudPutAction<IBloodPressure> = entity => async dispatch => {
   const result = await dispatch({
     type: ACTION_TYPES.UPDATE_BLOODPRESSURE,
-    payload: axios.put(apiUrl, cleanEntity(entity))
+    payload: axios.put(apiUrl, cleanEntity(entity)),
   });
   return result;
 };
@@ -149,11 +160,11 @@ export const deleteEntity: ICrudDeleteAction<IBloodPressure> = id => async dispa
   const requestUrl = `${apiUrl}/${id}`;
   const result = await dispatch({
     type: ACTION_TYPES.DELETE_BLOODPRESSURE,
-    payload: axios.delete(requestUrl)
+    payload: axios.delete(requestUrl),
   });
   return result;
 };
 
 export const reset = () => ({
-  type: ACTION_TYPES.RESET
+  type: ACTION_TYPES.RESET,
 });

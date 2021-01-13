@@ -1,7 +1,10 @@
 import { element, by, ElementFinder } from 'protractor';
+import { waitUntilDisplayed, waitUntilHidden, isVisible } from '../../util/utils';
+
+const expect = chai.expect;
 
 export default class PointsUpdatePage {
-  pageTitle: ElementFinder = element(by.id('healthyHipsterApp.points.home.createOrEditLabel'));
+  pageTitle: ElementFinder = element(by.id('healthPointsApp.points.home.createOrEditLabel'));
   saveButton: ElementFinder = element(by.id('save-entity'));
   cancelButton: ElementFinder = element(by.id('cancel-save'));
   dateInput: ElementFinder = element(by.css('input#points-date'));
@@ -56,10 +59,7 @@ export default class PointsUpdatePage {
   }
 
   async userSelectLastOption() {
-    await this.userSelect
-      .all(by.tagName('option'))
-      .last()
-      .click();
+    await this.userSelect.all(by.tagName('option')).last().click();
   }
 
   async userSelectOption(option) {
@@ -84,5 +84,27 @@ export default class PointsUpdatePage {
 
   getSaveButton() {
     return this.saveButton;
+  }
+
+  async enterData() {
+    await waitUntilDisplayed(this.saveButton);
+    await this.setDateInput('01-01-2001');
+    expect(await this.getDateInput()).to.eq('2001-01-01');
+    await waitUntilDisplayed(this.saveButton);
+    await this.setExerciseInput('5');
+    expect(await this.getExerciseInput()).to.eq('5');
+    await waitUntilDisplayed(this.saveButton);
+    await this.setMealsInput('5');
+    expect(await this.getMealsInput()).to.eq('5');
+    await waitUntilDisplayed(this.saveButton);
+    await this.setAlcoholInput('5');
+    expect(await this.getAlcoholInput()).to.eq('5');
+    await waitUntilDisplayed(this.saveButton);
+    await this.setNotesInput('notes');
+    expect(await this.getNotesInput()).to.match(/notes/);
+    await this.userSelectLastOption();
+    await this.save();
+    await waitUntilHidden(this.saveButton);
+    expect(await isVisible(this.saveButton)).to.be.false;
   }
 }

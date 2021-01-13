@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { Button, Row, Col, Label } from 'reactstrap';
 import { AvFeedback, AvForm, AvGroup, AvInput, AvField } from 'availity-reactstrap-validation';
-import { Translate, translate, ICrudGetAction, ICrudGetAllAction, ICrudPutAction } from 'react-jhipster';
+import { Translate, translate } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IRootState } from 'app/shared/reducers';
 
@@ -18,7 +18,7 @@ export interface IPreferencesUpdateProps extends StateProps, DispatchProps, Rout
 
 export const PreferencesUpdate = (props: IPreferencesUpdateProps) => {
   const [userId, setUserId] = useState('0');
-  const [isNew, setIsNew] = useState(!props.match.params || !props.match.params.id);
+  const [isNew] = useState(!props.match.params || !props.match.params.id);
 
   const { preferencesEntity, users, loading, updating } = props;
 
@@ -46,7 +46,7 @@ export const PreferencesUpdate = (props: IPreferencesUpdateProps) => {
     if (errors.length === 0) {
       const entity = {
         ...preferencesEntity,
-        ...values
+        ...values,
       };
 
       if (isNew) {
@@ -61,8 +61,8 @@ export const PreferencesUpdate = (props: IPreferencesUpdateProps) => {
     <div>
       <Row className="justify-content-center">
         <Col md="8">
-          <h2 id="healthyHipsterApp.preferences.home.createOrEditLabel">
-            <Translate contentKey="healthyHipsterApp.preferences.home.createOrEditLabel">Create or edit a Preferences</Translate>
+          <h2 id="healthPointsApp.preferences.home.createOrEditLabel" data-cy="PreferencesCreateUpdateHeading">
+            <Translate contentKey="healthPointsApp.preferences.home.createOrEditLabel">Create or edit a Preferences</Translate>
           </h2>
         </Col>
       </Row>
@@ -82,10 +82,11 @@ export const PreferencesUpdate = (props: IPreferencesUpdateProps) => {
               ) : null}
               <AvGroup>
                 <Label id="weeklyGoalLabel" for="preferences-weeklyGoal">
-                  <Translate contentKey="healthyHipsterApp.preferences.weeklyGoal">Weekly Goal</Translate>
+                  <Translate contentKey="healthPointsApp.preferences.weeklyGoal">Weekly Goal</Translate>
                 </Label>
                 <AvField
                   id="preferences-weeklyGoal"
+                  data-cy="weeklyGoal"
                   type="string"
                   className="form-control"
                   name="weeklyGoal"
@@ -93,30 +94,31 @@ export const PreferencesUpdate = (props: IPreferencesUpdateProps) => {
                     required: { value: true, errorMessage: translate('entity.validation.required') },
                     min: { value: 10, errorMessage: translate('entity.validation.min', { min: 10 }) },
                     max: { value: 21, errorMessage: translate('entity.validation.max', { max: 21 }) },
-                    number: { value: true, errorMessage: translate('entity.validation.number') }
+                    number: { value: true, errorMessage: translate('entity.validation.number') },
                   }}
                 />
               </AvGroup>
               <AvGroup>
                 <Label id="weightUnitsLabel" for="preferences-weightUnits">
-                  <Translate contentKey="healthyHipsterApp.preferences.weightUnits">Weight Units</Translate>
+                  <Translate contentKey="healthPointsApp.preferences.weightUnits">Weight Units</Translate>
                 </Label>
                 <AvInput
                   id="preferences-weightUnits"
+                  data-cy="weightUnits"
                   type="select"
                   className="form-control"
                   name="weightUnits"
                   value={(!isNew && preferencesEntity.weightUnits) || 'KG'}
                 >
-                  <option value="KG">{translate('healthyHipsterApp.Units.KG')}</option>
-                  <option value="LB">{translate('healthyHipsterApp.Units.LB')}</option>
+                  <option value="KG">{translate('healthPointsApp.Units.KG')}</option>
+                  <option value="LB">{translate('healthPointsApp.Units.LB')}</option>
                 </AvInput>
               </AvGroup>
               <AvGroup>
                 <Label for="preferences-user">
-                  <Translate contentKey="healthyHipsterApp.preferences.user">User</Translate>
+                  <Translate contentKey="healthPointsApp.preferences.user">User</Translate>
                 </Label>
-                <AvInput id="preferences-user" type="select" className="form-control" name="user.id">
+                <AvInput id="preferences-user" data-cy="user" type="select" className="form-control" name="user.id">
                   <option value="" key="0" />
                   {users
                     ? users.map(otherEntity => (
@@ -135,7 +137,7 @@ export const PreferencesUpdate = (props: IPreferencesUpdateProps) => {
                 </span>
               </Button>
               &nbsp;
-              <Button color="primary" id="save-entity" type="submit" disabled={updating}>
+              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
                 <FontAwesomeIcon icon="save" />
                 &nbsp;
                 <Translate contentKey="entity.action.save">Save</Translate>
@@ -153,7 +155,7 @@ const mapStateToProps = (storeState: IRootState) => ({
   preferencesEntity: storeState.preferences.entity,
   loading: storeState.preferences.loading,
   updating: storeState.preferences.updating,
-  updateSuccess: storeState.preferences.updateSuccess
+  updateSuccess: storeState.preferences.updateSuccess,
 });
 
 const mapDispatchToProps = {
@@ -161,7 +163,7 @@ const mapDispatchToProps = {
   getEntity,
   updateEntity,
   createEntity,
-  reset
+  reset,
 };
 
 type StateProps = ReturnType<typeof mapStateToProps>;

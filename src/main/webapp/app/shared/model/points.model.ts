@@ -1,9 +1,9 @@
-import { Moment } from 'moment';
+import dayjs from 'dayjs';
 import { IUser } from 'app/shared/model/user.model';
 
 export interface IPoints {
   id?: number;
-  date?: Moment;
+  date?: string;
   exercise?: number;
   meals?: number;
   alcohol?: number;

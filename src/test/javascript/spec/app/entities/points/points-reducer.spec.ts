@@ -10,9 +10,10 @@ import reducer, {
   createEntity,
   deleteEntity,
   getEntities,
+  getSearchEntities,
   getEntity,
   updateEntity,
-  reset
+  reset,
 } from 'app/entities/points/points.reducer';
 import { REQUEST, SUCCESS, FAILURE } from 'app/shared/reducers/action-type.util';
 import { IPoints, defaultValue } from 'app/shared/model/points.model';
@@ -33,7 +34,7 @@ describe('Entities reducer tests', () => {
     entity: defaultValue,
     totalItems: 0,
     updating: false,
-    updateSuccess: false
+    updateSuccess: false,
   };
 
   function testInitialState(state) {
@@ -41,7 +42,7 @@ describe('Entities reducer tests', () => {
       loading: false,
       errorMessage: null,
       updating: false,
-      updateSuccess: false
+      updateSuccess: false,
     });
     expect(isEmpty(state.entities));
     expect(isEmpty(state.entity));
@@ -61,13 +62,17 @@ describe('Entities reducer tests', () => {
 
   describe('Requests', () => {
     it('should set state to loading', () => {
-      testMultipleTypes([REQUEST(ACTION_TYPES.FETCH_POINTS_LIST), REQUEST(ACTION_TYPES.FETCH_POINTS)], {}, state => {
-        expect(state).toMatchObject({
-          errorMessage: null,
-          updateSuccess: false,
-          loading: true
-        });
-      });
+      testMultipleTypes(
+        [REQUEST(ACTION_TYPES.FETCH_POINTS_LIST), REQUEST(ACTION_TYPES.SEARCH_POINTS), REQUEST(ACTION_TYPES.FETCH_POINTS)],
+        {},
+        state => {
+          expect(state).toMatchObject({
+            errorMessage: null,
+            updateSuccess: false,
+            loading: true,
+          });
+        }
+      );
     });
 
     it('should set state to updating', () => {
@@ -78,7 +83,7 @@ describe('Entities reducer tests', () => {
           expect(state).toMatchObject({
             errorMessage: null,
             updateSuccess: false,
-            updating: true
+            updating: true,
           });
         }
       );
@@ -89,11 +94,11 @@ describe('Entities reducer tests', () => {
         reducer(
           { ...initialState, loading: true },
           {
-            type: ACTION_TYPES.RESET
+            type: ACTION_TYPES.RESET,
           }
         )
       ).toEqual({
-        ...initialState
+        ...initialState,
       });
     });
   });
@@ -103,17 +108,18 @@ describe('Entities reducer tests', () => {
       testMultipleTypes(
         [
           FAILURE(ACTION_TYPES.FETCH_POINTS_LIST),
+          FAILURE(ACTION_TYPES.SEARCH_POINTS),
           FAILURE(ACTION_TYPES.FETCH_POINTS),
           FAILURE(ACTION_TYPES.CREATE_POINTS),
           FAILURE(ACTION_TYPES.UPDATE_POINTS),
-          FAILURE(ACTION_TYPES.DELETE_POINTS)
+          FAILURE(ACTION_TYPES.DELETE_POINTS),
         ],
         'error message',
         state => {
           expect(state).toMatchObject({
             errorMessage: 'error message',
             updateSuccess: false,
-            updating: false
+            updating: false,
           });
         }
       );
@@ -126,13 +132,27 @@ describe('Entities reducer tests', () => {
       expect(
         reducer(undefined, {
           type: SUCCESS(ACTION_TYPES.FETCH_POINTS_LIST),
-          payload
+          payload,
         })
       ).toEqual({
         ...initialState,
         loading: false,
         totalItems: payload.headers['x-total-count'],
-        entities: payload.data
+        entities: payload.data,
+      });
+    });
+    it('should search all entities', () => {
+      const payload = { data: [{ 1: 'fake1' }, { 2: 'fake2' }], headers: { 'x-total-count': 123 } };
+      expect(
+        reducer(undefined, {
+          type: SUCCESS(ACTION_TYPES.SEARCH_POINTS),
+          payload,
+        })
+      ).toEqual({
+        ...initialState,
+        loading: false,
+        totalItems: payload.headers['x-total-count'],
+        entities: payload.data,
       });
     });
 
@@ -141,12 +161,12 @@ describe('Entities reducer tests', () => {
       expect(
         reducer(undefined, {
           type: SUCCESS(ACTION_TYPES.FETCH_POINTS),
-          payload
+          payload,
         })
       ).toEqual({
         ...initialState,
         loading: false,
-        entity: payload.data
+        entity: payload.data,
       });
     });
 
@@ -155,13 +175,13 @@ describe('Entities reducer tests', () => {
       expect(
         reducer(undefined, {
           type: SUCCESS(ACTION_TYPES.CREATE_POINTS),
-          payload
+          payload,
         })
       ).toEqual({
         ...initialState,
         updating: false,
         updateSuccess: true,
-        entity: payload.data
+        entity: payload.data,
       });
     });
 
@@ -169,11 +189,11 @@ describe('Entities reducer tests', () => {
       const payload = 'fake payload';
       const toTest = reducer(undefined, {
         type: SUCCESS(ACTION_TYPES.DELETE_POINTS),
-        payload
+        payload,
       });
       expect(toTest).toMatchObject({
         updating: false,
-        updateSuccess: true
+        updateSuccess: true,
       });
     });
   });
@@ -194,25 +214,37 @@ describe('Entities reducer tests', () => {
     it('dispatches ACTION_TYPES.FETCH_POINTS_LIST actions', async () => {
       const expectedActions = [
         {
-          type: REQUEST(ACTION_TYPES.FETCH_POINTS_LIST)
+          type: REQUEST(ACTION_TYPES.FETCH_POINTS_LIST),
         },
         {
           type: SUCCESS(ACTION_TYPES.FETCH_POINTS_LIST),
-          payload: resolvedObject
-        }
+          payload: resolvedObject,
+        },
       ];
       await store.dispatch(getEntities()).then(() => expect(store.getActions()).toEqual(expectedActions));
+    });
+    it('dispatches ACTION_TYPES.SEARCH_POINTS actions', async () => {
+      const expectedActions = [
+        {
+          type: REQUEST(ACTION_TYPES.SEARCH_POINTS),
+        },
+        {
+          type: SUCCESS(ACTION_TYPES.SEARCH_POINTS),
+          payload: resolvedObject,
+        },
+      ];
+      await store.dispatch(getSearchEntities()).then(() => expect(store.getActions()).toEqual(expectedActions));
     });
 
     it('dispatches ACTION_TYPES.FETCH_POINTS actions', async () => {
       const expectedActions = [
         {
-          type: REQUEST(ACTION_TYPES.FETCH_POINTS)
+          type: REQUEST(ACTION_TYPES.FETCH_POINTS),
         },
         {
           type: SUCCESS(ACTION_TYPES.FETCH_POINTS),
-          payload: resolvedObject
-        }
+          payload: resolvedObject,
+        },
       ];
       await store.dispatch(getEntity(42666)).then(() => expect(store.getActions()).toEqual(expectedActions));
     });
@@ -220,19 +252,19 @@ describe('Entities reducer tests', () => {
     it('dispatches ACTION_TYPES.CREATE_POINTS actions', async () => {
       const expectedActions = [
         {
-          type: REQUEST(ACTION_TYPES.CREATE_POINTS)
+          type: REQUEST(ACTION_TYPES.CREATE_POINTS),
         },
         {
           type: SUCCESS(ACTION_TYPES.CREATE_POINTS),
-          payload: resolvedObject
+          payload: resolvedObject,
         },
         {
-          type: REQUEST(ACTION_TYPES.FETCH_POINTS_LIST)
+          type: REQUEST(ACTION_TYPES.FETCH_POINTS_LIST),
         },
         {
           type: SUCCESS(ACTION_TYPES.FETCH_POINTS_LIST),
-          payload: resolvedObject
-        }
+          payload: resolvedObject,
+        },
       ];
       await store.dispatch(createEntity({ id: 1 })).then(() => expect(store.getActions()).toEqual(expectedActions));
     });
@@ -240,19 +272,12 @@ describe('Entities reducer tests', () => {
     it('dispatches ACTION_TYPES.UPDATE_POINTS actions', async () => {
       const expectedActions = [
         {
-          type: REQUEST(ACTION_TYPES.UPDATE_POINTS)
+          type: REQUEST(ACTION_TYPES.UPDATE_POINTS),
         },
         {
           type: SUCCESS(ACTION_TYPES.UPDATE_POINTS),
-          payload: resolvedObject
+          payload: resolvedObject,
         },
-        {
-          type: REQUEST(ACTION_TYPES.FETCH_POINTS_LIST)
-        },
-        {
-          type: SUCCESS(ACTION_TYPES.FETCH_POINTS_LIST),
-          payload: resolvedObject
-        }
       ];
       await store.dispatch(updateEntity({ id: 1 })).then(() => expect(store.getActions()).toEqual(expectedActions));
     });
@@ -260,19 +285,19 @@ describe('Entities reducer tests', () => {
     it('dispatches ACTION_TYPES.DELETE_POINTS actions', async () => {
       const expectedActions = [
         {
-          type: REQUEST(ACTION_TYPES.DELETE_POINTS)
+          type: REQUEST(ACTION_TYPES.DELETE_POINTS),
         },
         {
           type: SUCCESS(ACTION_TYPES.DELETE_POINTS),
-          payload: resolvedObject
+          payload: resolvedObject,
         },
         {
-          type: REQUEST(ACTION_TYPES.FETCH_POINTS_LIST)
+          type: REQUEST(ACTION_TYPES.FETCH_POINTS_LIST),
         },
         {
           type: SUCCESS(ACTION_TYPES.FETCH_POINTS_LIST),
-          payload: resolvedObject
-        }
+          payload: resolvedObject,
+        },
       ];
       await store.dispatch(deleteEntity(42666)).then(() => expect(store.getActions()).toEqual(expectedActions));
     });
@@ -280,8 +305,8 @@ describe('Entities reducer tests', () => {
     it('dispatches ACTION_TYPES.RESET actions', async () => {
       const expectedActions = [
         {
-          type: ACTION_TYPES.RESET
-        }
+          type: ACTION_TYPES.RESET,
+        },
       ];
       await store.dispatch(reset());
       expect(store.getActions()).toEqual(expectedActions);

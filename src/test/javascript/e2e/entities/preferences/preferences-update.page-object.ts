@@ -1,7 +1,10 @@
 import { element, by, ElementFinder } from 'protractor';
+import { waitUntilDisplayed, waitUntilHidden, isVisible } from '../../util/utils';
+
+const expect = chai.expect;
 
 export default class PreferencesUpdatePage {
-  pageTitle: ElementFinder = element(by.id('healthyHipsterApp.preferences.home.createOrEditLabel'));
+  pageTitle: ElementFinder = element(by.id('healthPointsApp.preferences.home.createOrEditLabel'));
   saveButton: ElementFinder = element(by.id('save-entity'));
   cancelButton: ElementFinder = element(by.id('cancel-save'));
   weeklyGoalInput: ElementFinder = element(by.css('input#preferences-weeklyGoal'));
@@ -29,16 +32,10 @@ export default class PreferencesUpdatePage {
   }
 
   async weightUnitsSelectLastOption() {
-    await this.weightUnitsSelect
-      .all(by.tagName('option'))
-      .last()
-      .click();
+    await this.weightUnitsSelect.all(by.tagName('option')).last().click();
   }
   async userSelectLastOption() {
-    await this.userSelect
-      .all(by.tagName('option'))
-      .last()
-      .click();
+    await this.userSelect.all(by.tagName('option')).last().click();
   }
 
   async userSelectOption(option) {
@@ -63,5 +60,17 @@ export default class PreferencesUpdatePage {
 
   getSaveButton() {
     return this.saveButton;
+  }
+
+  async enterData() {
+    await waitUntilDisplayed(this.saveButton);
+    await this.setWeeklyGoalInput('15');
+    expect(await this.getWeeklyGoalInput()).to.eq('15');
+    await waitUntilDisplayed(this.saveButton);
+    await this.weightUnitsSelectLastOption();
+    await this.userSelectLastOption();
+    await this.save();
+    await waitUntilHidden(this.saveButton);
+    expect(await isVisible(this.saveButton)).to.be.false;
   }
 }
